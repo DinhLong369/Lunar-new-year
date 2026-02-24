@@ -1,431 +1,556 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🧧Lunar New Year 2027 Countdown </title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", sans-serif;
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-body {
-    height: 100vh;
+  :root {
+    --gold: #e8c98a;
+    --gold-light: #f5dea3;
+    --bg: #0d0b08;
+    --surface: #141210;
+    --text: #fffbf0;
+    --muted: #a89968;
+    --border: rgba(232,201,138,0.25);
+  }
+
+  [data-theme="tet"] {
+    --gold: #e8c98a;
+    --gold-light: #ffd700;
+    --bg: #f9f4ed;
+    --surface: #8b3a3a;
+    --text: #fffbf0;
+    --muted: #d97070;
+    --border: rgba(200,58,58,0.25);
+  }
+
+  body {
+    background: var(--bg);
+    font-family: 'Space Mono', monospace;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    background: radial-gradient(circle at top, #ffe5d0, #ff9a8b 70%);
-    color: #5a2a2a;
-    text-align: center;
-    overflow: hidden;
-}
-
-.container {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(12px);
-    padding: 40px 60px;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    position: relative;
-    z-index: 2;
-}
-
-h1 { font-size: 34px; margin-bottom: 10px; }
-h2 { font-weight: 400; margin-bottom: 30px; opacity: 0.8; }
-
-.countdown {
-    display: flex;
-    gap: 25px;
     justify-content: center;
-    flex-wrap: wrap;
-}
-
-.time-box {
-    background: rgba(255,255,255,0.85);
+    min-height: 100vh;
+    gap: 14px;
     padding: 20px;
-    border-radius: 15px;
-    min-width: 100px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-}
+  }
 
-.number {
-    font-size: 40px;
-    font-weight: bold;
-}
+  /* ── Selector tabs ── */
+  .selector {
+    display: flex;
+    gap: 6px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+  }
 
-.label {
-    font-size: 13px;
-    margin-top: 5px;
-    opacity: 0.7;
-}
-
-.pip-btn {
-    margin-top: 30px;
-    padding: 10px 20px;
-    background: #ffb347;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
+  .tab {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 18px;
+    border-radius: 7px;
     cursor: pointer;
-}
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    user-select: none;
+    font-weight: 600;
+  }
 
-.pip-btn:hover {
-    background: #ffa726;
-}
+  .tab:hover { color: var(--gold-light); }
 
-.footer {
-    margin-top: 20px;
-    font-size: 13px;
-    opacity: 0.7;
-}
+  .pip-btn {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 8px 18px;
+    border: 1px solid var(--border);
+    background: transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+  }
+  
+  .pip-btn:hover {
+    color: var(--gold-light);
+    border-color: rgba(200,169,110,0.4);
+    background: rgba(200,169,110,0.08);
+  }
+  .pip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 44px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(200,169,110,0.08);
+    min-width: 540px;
+  }
 
-/* Ngựa linh vật */
-.horse {
-    position: fixed;
-    bottom: 10px;
-    right: 20px;
-    width: 120px;
-    z-index: 3;
-    animation: float 3s ease-in-out infinite;
-}
+  .pip::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.6;
+  }
 
-@keyframes float {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
+  .event-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    line-height: 1.5;
+    min-width: 120px;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    font-weight: 600;
+  }
 
-/* Canvas pháo hoa */
-#fireworks {
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    z-index: 1;
-}
+  .event-label.visible { opacity: 1; transform: translateY(0); }
+
+  .event-label span {
+    display: block;
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    margin-bottom: 6px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .vline {
+    width: 1px;
+    height: 60px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  .countdown {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.3s ease 0.06s, transform 0.3s ease 0.06s;
+  }
+
+  .countdown.visible { opacity: 1; transform: translateY(0); }
+
+  .unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .unit-value {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    min-width: 60px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.25s;
+  }
+
+  .unit-value.tick { color: var(--gold); }
+
+  .unit-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .sep {
+    font-size: 28px;
+    color: var(--muted);
+    padding: 0 2px;
+    margin-bottom: 18px;
+    opacity: 0.35;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.1; }
+  }
+
+  /* ── Theme Selector ── */
+  .theme-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .theme-btn {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+  }
+
+  .theme-btn:hover { color: var(--gold-light); }
+
+  .theme-btn.active {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: rgba(232,201,138,0.1);
+  }
 </style>
 </head>
-
 <body>
 
-<canvas id="fireworks"></canvas>
-
-<div class="container" id="mainContent">
-    <div style="margin-bottom: 18px;">
-        <select id="countdownType" style="padding:8px 16px;border-radius:8px;font-size:16px;">
-            <option value="newyear">Lunar New Year 2027</option>
-            <option value="hungvuong">Giỗ tổ Hùng Vương 2026</option>
-        </select>
-    </div>
-    <h1>🧧 Lunar New Year 2027</h1>
-
-    <div class="countdown">
-        <div class="time-box">
-            <div id="days" class="number">0</div>
-            <div class="label">Days</div>
-        </div>
-        <div class="time-box">
-            <div id="hours" class="number">0</div>
-            <div class="label">Hours</div>
-        </div>
-        <div class="time-box">
-            <div id="minutes" class="number">0</div>
-            <div class="label">Minutes</div>
-        </div>
-        <div class="time-box">
-            <div id="seconds" class="number">0</div>
-            <div class="label">Seconds</div>
-        </div>
-    </div>
-
-    <button class="pip-btn" onclick="openPiP()">PiP (Picture-in-Picture)</button>
+<div class="theme-selector">
+  <button class="theme-btn active" data-theme="dark-gold">🌙 Đen Vàng</button>
+  <button class="theme-btn" data-theme="tet">🎆 Tết</button>
 </div>
 
+<div class="selector">
+  <div class="tab active" data-idx="0">Giỗ Tổ Hùng Vương</div>
+  <div class="tab" data-idx="1">Tết Nguyên Đán</div>
+  <button class="pip-btn" id="pip-btn">📺 PiP</button>
+</div>
+
+<div class="pip">
+  <div class="event-label visible" id="label">
+    <span>10/3 ÂL • 2026</span>
+    Giỗ Tổ<br>Hùng Vương
+  </div>
+  <div class="vline"></div>
+  <div class="countdown visible" id="countdown">
+    <div class="unit"><div class="unit-value" id="cd">00</div><div class="unit-label">ngày</div></div>
+    <div class="sep">:</div>
+    <div class="unit"><div class="unit-value" id="ch">00</div><div class="unit-label">giờ</div></div>
+    <div class="sep">:</div>
+    <div class="unit"><div class="unit-value" id="cm">00</div><div class="unit-label">phút</div></div>
+    <div class="sep">:</div>
+    <div class="unit"><div class="unit-value" id="cs">00</div><div class="unit-label">giây</div></div>
+  </div>
+</div>
 
 <script>
-/* COUNTDOWN */
-let targetDate = new Date("2027-02-17T00:00:00").getTime();
-let countdownTitle = "🧧 Lunar New Year 2027";
+  const events = [
+    { target: new Date('2026-04-28T00:00:00'), badge: '10/3 ÂL • 2026', name: 'Giỗ Tổ<br>Hùng Vương' },
+    { target: new Date('2027-02-17T00:00:00'), badge: 'TẾT • 2027',      name: 'Năm Mùi<br>Lunar New Year' }
+  ];
 
-const hungVuongDate = new Date("2026-04-18T00:00:00").getTime(); // Giỗ tổ Hùng Vương 2026
+  let current = 0;
+  const labelEl = document.getElementById('label');
+  const cdEl    = document.getElementById('countdown');
+  const tabs    = document.querySelectorAll('.tab');
 
-document.getElementById('countdownType').addEventListener('change', function() {
-    if (this.value === 'newyear') {
-        targetDate = new Date("2027-02-17T00:00:00").getTime();
-        countdownTitle = "🧧 Lunar New Year 2027";
-    } else if (this.value === 'hungvuong') {
-        targetDate = hungVuongDate;
-        countdownTitle = "Giỗ tổ Hùng Vương 2026";
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function updateUnit(id, val) {
+    const el  = document.getElementById(id);
+    const str = pad(val);
+    if (el.textContent !== str) {
+      el.textContent = str;
+      el.classList.remove('tick');
+      void el.offsetWidth;
+      el.classList.add('tick');
+      setTimeout(() => el.classList.remove('tick'), 280);
     }
-    document.querySelector(".container h1").innerText = countdownTitle;
-    document.querySelector(".container h2").innerText = countdownDateText;
-    document.querySelector(".footer").innerText = `Countdown to ${countdownTitle}`;
-    updateCountdown();
-});
+  }
 
-function updateCountdown() {
-    const now = new Date().getTime();
-    const diff = targetDate - now;
+  function calc(target) {
+    const diff = target - Date.now();
+    if (diff <= 0) return { d:0, h:0, m:0, s:0 };
+    const s = Math.floor(diff / 1000);
+    return { d: Math.floor(s/86400), h: Math.floor((s%86400)/3600), m: Math.floor((s%3600)/60), s: s%60 };
+  }
 
-    if (diff > 0) {
-        days.innerText = Math.floor(diff / (1000*60*60*24));
-        hours.innerText = Math.floor((diff/(1000*60*60))%24);
-        minutes.innerText = Math.floor((diff/(1000*60))%60);
-        seconds.innerText = Math.floor((diff/1000)%60);
-    }
-}
-setInterval(updateCountdown,1000);
-updateCountdown();
+  function tick() {
+    const c = calc(events[current].target);
+    updateUnit('cd', c.d); updateUnit('ch', c.h);
+    updateUnit('cm', c.m); updateUnit('cs', c.s);
+  }
 
-/* FIREWORKS */
-const canvas = document.getElementById("fireworks");
-const ctx = canvas.getContext("2d");
+  function switchEvent(idx) {
+    if (idx === current) return;
+    current = idx;
 
-function resizeCanvas(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+    labelEl.classList.remove('visible');
+    cdEl.classList.remove('visible');
 
-class Particle{
-    constructor(x,y){
-        this.x=x;
-        this.y=y;
-        this.angle=Math.random()*2*Math.PI;
-        this.speed=Math.random()*4;
-        this.alpha=1;
-        this.decay=0.015+Math.random()*0.01;
-    }
-    update(){
-        this.x+=Math.cos(this.angle)*this.speed;
-        this.y+=Math.sin(this.angle)*this.speed;
-        this.alpha-=this.decay;
-    }
-    draw(){
-        ctx.globalAlpha=this.alpha;
-        ctx.fillStyle=`hsl(${Math.random()*360},80%,60%)`;
-        ctx.fillRect(this.x,this.y,3,3);
-        ctx.globalAlpha=1;
-    }
-}
+    setTimeout(() => {
+      const ev = events[current];
+      labelEl.innerHTML = `<span>${ev.badge}</span>${ev.name}`;
+      tick();
+      requestAnimationFrame(() => {
+        labelEl.classList.add('visible');
+        cdEl.classList.add('visible');
+      });
+    }, 250);
 
-let particles=[];
+    tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+  }
 
-function createFirework(){
-    let x=Math.random()*canvas.width;
-    let y=Math.random()*canvas.height/2;
-    for(let i=0;i<50;i++){
-        particles.push(new Particle(x,y));
-    }
-}
+  tabs.forEach(tab => tab.addEventListener('click', () => switchEvent(+tab.dataset.idx)));
 
-function animate(){
-    ctx.fillStyle="rgba(0,0,0,0.1)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+  // Theme switching
+  const themeBtns = document.querySelectorAll('.theme-btn');
+  const html = document.documentElement;
 
-    particles.forEach(p=>{p.update();p.draw();});
-    particles=particles.filter(p=>p.alpha>0);
-
-    requestAnimationFrame(animate);
-}
-
-setInterval(createFirework,800); // bắn liên tục
-animate();
-
-
-async function openPiP() {
-    if (!("documentPictureInPicture" in window)) {
-        alert("Browser không hỗ trợ.");
-        return;
-    }
-
-    // Lấy loại countdown hiện tại
-    const countdownType = document.getElementById('countdownType').value;
-    let pipTargetDate, pipTitle;
-    if (countdownType === 'newyear') {
-        pipTargetDate = new Date("2027-02-17T00:00:00").getTime();
-        pipTitle = "Lunar New Year 2027";
+  function setTheme(themeName) {
+    if (themeName === 'dark-gold') {
+      html.removeAttribute('data-theme');
     } else {
-        pipTargetDate = new Date("2026-04-18T00:00:00").getTime();
-        pipTitle = "Giỗ tổ Hùng Vương 2026";
+      html.setAttribute('data-theme', themeName);
     }
+    localStorage.setItem('selectedTheme', themeName);
+    themeBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === themeName));
+  }
 
-    const pipWindow = await documentPictureInPicture.requestWindow({
-        width: 360,
-        height: 300 // tăng chiều cao
-    });
+  themeBtns.forEach(btn => {
+    btn.addEventListener('click', () => setTheme(btn.dataset.theme));
+  });
 
+  // Load saved theme
+  const savedTheme = localStorage.getItem('selectedTheme') || 'dark-gold';
+  setTheme(savedTheme);
+
+  // Theme color palettes
+  const themeColors = {
+    'dark-gold': {
+      bg: '#0d0b08',
+      surface: '#141210',
+      text: '#fffbf0',
+      gold: '#e8c98a',
+      goldLight: '#f5dea3',
+      muted: '#a89968',
+      borderColor: 'rgba(232,201,138,0.25)',
+      boxShadowInset: 'rgba(232,201,138,0.12)',
+      shadowMain: 'rgba(0,0,0,0.6)'
+    },
+    'tet': {
+      bg: '#f9f4ed',
+      surface: '#8b3a3a',
+      text: '#fffbf0',
+      gold: '#e8c98a',
+      goldLight: '#ffd700',
+      muted: '#d97070',
+      borderColor: 'rgba(200,58,58,0.25)',
+      boxShadowInset: 'rgba(200,58,58,0.12)',
+      shadowMain: 'rgba(0,0,0,0.4)'
+    }
+  };
+
+  function getCurrentThemeColors() {
+    const theme = html.getAttribute('data-theme') || 'dark-gold';
+    return themeColors[theme];
+  }
+
+  // PiP functionality
+  async function openPiP() {
+    if (!("documentPictureInPicture" in window)) {
+      alert("PiP không được hỗ trợ trên trình duyệt này");
+      return;
+    }
+    
+    const colors = getCurrentThemeColors();
+    const pipWindow = await documentPictureInPicture.requestWindow({ width: 500, height: 160 });
     const doc = pipWindow.document;
-
-    doc.body.style.margin = "0";
-    doc.body.style.fontFamily = "Segoe UI, sans-serif";
-    doc.body.style.background = 'linear-gradient(135deg, #ffb347 0%, #ff0844 100%)';
-    doc.body.style.display = "flex";
-    doc.body.style.alignItems = "center";
-    doc.body.style.justifyContent = "center";
-    doc.body.style.height = "100vh";
-
-    // Thêm canvas pháo hoa vào PiP
-    const fwCanvas = doc.createElement('canvas');
-    fwCanvas.id = 'pipFireworks';
-    fwCanvas.style.position = 'fixed';
-    fwCanvas.style.top = '0';
-    fwCanvas.style.left = '0';
-    fwCanvas.style.width = '100vw';
-    fwCanvas.style.height = '100vh';
-    fwCanvas.style.pointerEvents = 'none';
-    fwCanvas.style.zIndex = '1';
-    fwCanvas.style.background = 'transparent';
-    doc.body.appendChild(fwCanvas);
-
-    function resizeFWCanvas() {
-        fwCanvas.width = doc.documentElement.clientWidth;
-        fwCanvas.height = doc.documentElement.clientHeight;
-        doc.body.style.background = 'linear-gradient(135deg, #ffb347 0%, #ff0844 100%)';
-    }
-    resizeFWCanvas();
-    pipWindow.addEventListener('resize', resizeFWCanvas);
-
-    // Firework logic cho PiP
-    const fwCtx = fwCanvas.getContext('2d');
-    class PiPParticle {
-        constructor(x, y) {
-            this.x = x;
-            this.y = y;
-            this.angle = Math.random() * 2 * Math.PI;
-            this.speed = Math.random() * 3.5;
-            this.alpha = 1;
-            this.decay = 0.018 + Math.random() * 0.012;
-        }
-        update() {
-            this.x += Math.cos(this.angle) * this.speed;
-            this.y += Math.sin(this.angle) * this.speed;
-            this.alpha -= this.decay;
-        }
-        draw() {
-            fwCtx.globalAlpha = this.alpha;
-            fwCtx.fillStyle = `hsl(${Math.random() * 360},80%,60%)`;
-            fwCtx.fillRect(this.x, this.y, 2.5, 2.5);
-            fwCtx.globalAlpha = 1;
-        }
-    }
-    let fwParticles = [];
-    function createPiPFirework() {
-        let x = Math.random() * fwCanvas.width;
-        let y = Math.random() * fwCanvas.height / 2;
-        for (let i = 0; i < 36; i++) {
-            fwParticles.push(new PiPParticle(x, y));
-        }
-    }
-    function animatePiPFirework() {
-        fwCtx.fillStyle = "rgba(0,0,0,0.10)";
-        fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
-        fwParticles.forEach(p => { p.update(); p.draw(); });
-        fwParticles = fwParticles.filter(p => p.alpha > 0);
-        pipWindow.requestAnimationFrame(animatePiPFirework);
-    }
-    setInterval(createPiPFirework, 900);
-    animatePiPFirework();
-
-    // Nội dung countdown PiP
-    const pipDiv = doc.createElement('div');
-    pipDiv.style.position = 'relative';
-    pipDiv.style.zIndex = '2';
-    pipDiv.style.background = 'rgba(255,255,255,0.18)';
-    pipDiv.style.backdropFilter = 'blur(14px)';
-    pipDiv.style.backdropFilter = 'blur(10px)';
-    pipDiv.style.padding = '32px 18px 32px 18px';
-    pipDiv.style.borderRadius = '28px';
-    pipDiv.style.width = '92%';
-    pipDiv.style.maxWidth = '420px';
-    pipDiv.style.boxShadow = '0 10px 30px rgba(0,0,0,0.25)';
-    pipDiv.style.textAlign = 'center';
-    pipDiv.style.color = 'white';
-    pipDiv.style.display = 'flex';
-    pipDiv.style.flexDirection = 'column';
-    pipDiv.style.alignItems = 'center';
-    pipDiv.style.justifyContent = 'center';
-    pipDiv.style.height = 'auto';
-    pipDiv.style.margin = '0 auto';
-
-    pipDiv.innerHTML = `
-        <div style="
-            font-size:20px;
-            font-weight:600;
-            opacity:0.92;
-            margin-bottom:18px;
-            letter-spacing:1px;
-        ">
-            ${pipTitle}
-        </div>
-        <div id="pipTimer" style="
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            gap:18px;
-            margin-top:0;
-        "></div>
+    doc.title = '';
+    doc.documentElement.lang = 'vi';
+    
+    // Add styles
+    const link = doc.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap';
+    link.rel = 'stylesheet';
+    doc.head.appendChild(link);
+    
+    doc.body.style.cssText = `
+      margin: 0;
+      padding: 0;
+      background: ${colors.bg};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Space Mono', monospace;
     `;
-    doc.body.appendChild(pipDiv);
-
-    function updatePiP() {
-        const now = new Date().getTime();
-        const diff = pipTargetDate - now;
-        const timer = doc.getElementById("pipTimer");
-        if (diff <= 0) {
-            timer.innerHTML = `
-                <div style="font-size:26px;font-weight:bold;letter-spacing:1px;">
-                    🎉 Đã đến ngày ${pipTitle}! 🎉
-                </div>
-            `;
-            return;
-        }
-        const d = Math.floor(diff / (1000*60*60*24));
-        const h = Math.floor((diff/(1000*60*60))%24);
-        const m = Math.floor((diff/(1000*60))%60);
-        const s = Math.floor((diff/1000)%60);
-        function box(val, label){
-            return `
-                <div style="
-                    min-width:56px;
-                    background:rgba(255,255,255,0.13);
-                    border-radius:16px;
-                    padding:16px 0 10px 0;
-                    display:flex;
-                    flex-direction:column;
-                    align-items:center;
-                    box-shadow:0 2px 8px rgba(0,0,0,0.08);
-                ">
-                    <div style="
-                        font-size:28px;
-                        font-weight:700;
-                        margin-bottom:2px;
-                        letter-spacing:1px;
-                    ">${val}</div>
-                    <div style="
-                        font-size:13px;
-                        opacity:0.82;
-                        font-weight:500;
-                        letter-spacing:1px;
-                    ">${label}</div>
-                </div>
-            `;
-        }
-        timer.innerHTML =
-            box(d,"D") +
-            box(h,"H") +
-            box(m,"M") +
-            box(s,"S");
+    
+    // Create pip card
+    const pipCard = doc.createElement('div');
+    pipCard.style.cssText = `
+      background: ${colors.surface};
+      border: 1px solid ${colors.borderColor};
+      border-radius: 16px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 40px ${colors.shadowMain}, inset 0 1px 0 ${colors.boxShadowInset};
+      width: 90%;
+    `;
+    
+    // Top border
+    const border = doc.createElement('div');
+    border.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, ${colors.gold}, transparent);
+      opacity: 0.6;
+    `;
+    pipCard.appendChild(border);
+    
+    // Event label
+    const label = doc.createElement('div');
+    const ev = events[current];
+    label.style.cssText = `
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: ${colors.muted};
+      white-space: nowrap;
+      line-height: 1.4;
+      min-width: 70px;
+      font-weight: 600;
+    `;
+    label.innerHTML = `<span style="display:block;color:${colors.gold};font-size:8px;letter-spacing:0.18em;margin-bottom:2px;font-weight:700;">${ev.badge}</span>${ev.name}`;
+    pipCard.appendChild(label);
+    
+    // Vertical line
+    const vline = doc.createElement('div');
+    vline.style.cssText = `width:1px;height:32px;background:${colors.borderColor};`;
+    pipCard.appendChild(vline);
+    
+    // Countdown
+    const countdown = doc.createElement('div');
+    countdown.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 1px;
+      font-family: 'Space Mono', monospace;
+    `;
+    
+    const createUnit = (lbl) => {
+      const unit = doc.createElement('div');
+      unit.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      `;
+      const val = doc.createElement('div');
+      val.style.cssText = `
+        font-size: 18px;
+        font-weight: 800;
+        color: ${colors.text};
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        min-width: 30px;
+        text-align: center;
+      `;
+      val.textContent = '00';
+      const valLbl = doc.createElement('div');
+      valLbl.style.cssText = `
+        font-size: 6px;
+        letter-spacing: 0.15em;
+        color: ${colors.muted};
+        text-transform: uppercase;
+        font-weight: 700;
+      `;
+      valLbl.textContent = lbl;
+      unit.appendChild(val);
+      unit.appendChild(valLbl);
+      return { unit, val };
+    };
+    
+    const d = createUnit('ngày');
+    const h = createUnit('giờ');
+    const m = createUnit('phút');
+    const s = createUnit('giây');
+    
+    const sep = () => {
+      const el = doc.createElement('div');
+      el.style.cssText = `
+        font-size: 14px;
+        color: ${colors.muted};
+        padding: 0 2px;
+        margin-bottom: 8px;
+        opacity: 0.5;
+        animation: blink 1s step-end infinite;
+        font-weight: 700;
+        font-weight: 700;
+      `;
+      el.textContent = ':';
+      return el;
+    };
+    
+    countdown.appendChild(d.unit);
+    countdown.appendChild(sep());
+    countdown.appendChild(h.unit);
+    countdown.appendChild(sep());
+    countdown.appendChild(m.unit);
+    countdown.appendChild(sep());
+    countdown.appendChild(s.unit);
+    pipCard.appendChild(countdown);
+    
+    // Add animation
+    const style = doc.createElement('style');
+    style.textContent = `
+      @keyframes blink {
+        0%, 100% { opacity: 0.35; }
+        50% { opacity: 0.1; }
+      }
+    `;
+    doc.head.appendChild(style);
+    doc.body.appendChild(pipCard);
+    
+    // Update function
+    function refresh() {
+      const c = calc(events[current].target);
+      d.val.textContent = pad(c.d);
+      h.val.textContent = pad(c.h);
+      m.val.textContent = pad(c.m);
+      s.val.textContent = pad(c.s);
     }
-    updatePiP();
-    setInterval(updatePiP, 1000);
-}
+    refresh();
+    setInterval(refresh, 1000);
+  }
+  
+  document.getElementById('pip-btn').addEventListener('click', openPiP);
 
+  tick();
+  setInterval(tick, 1000);
 </script>
-
 </body>
 </html>
