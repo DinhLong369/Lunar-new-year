@@ -266,6 +266,100 @@
       border-color: #ffd700;
       text-shadow: 0 1px 2px #fff8, 0 0 2px #ffd70088;
     }
+
+    /* ── Settings row (shake feature) ── */
+    .settings-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      min-width: 540px;
+    }
+
+    .settings-icon {
+      color: var(--muted);
+      font-size: 20px;
+      flex-shrink: 0;
+      width: 26px;
+      text-align: center;
+    }
+
+    .settings-text {
+      flex: 1;
+    }
+
+    .settings-title {
+      font-size: 13px;
+      color: var(--text);
+      letter-spacing: 0.02em;
+      margin-bottom: 3px;
+    }
+
+    .settings-desc {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 24px;
+      transition: background 0.3s;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: #0078d4;
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+
+    .toggle-status {
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 24px;
+      text-align: right;
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
 
@@ -274,6 +368,19 @@
   <div class="theme-selector">
     <button class="theme-btn active" data-theme="dark-gold">🌙 Dark Theme</button>
     <button class="theme-btn" data-theme="tet">🎆 Lunar New Year</button>
+  </div>
+
+  <div class="settings-row">
+    <div class="settings-icon">⊹</div>
+    <div class="settings-text">
+      <div class="settings-title">Title Bar Window Shake</div>
+      <div class="settings-desc">When I shake this window, minimize all other windows</div>
+    </div>
+    <label class="toggle-switch">
+      <input type="checkbox" id="shake-toggle">
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-status" id="shake-status">Off</span>
   </div>
 
   <div class="selector">
@@ -624,6 +731,108 @@
 
     tick();
     setInterval(tick, 1000);
+
+    // ── Title bar window shake ──
+    const SHAKE_WINDOW_MS = 700;
+    const SHAKE_VELOCITY_PX = 15;
+    const SHAKE_DIR_CHANGES = 3;
+    const SHAKE_ACCEL_DELTA = 25;
+
+    const shakeToggle = document.getElementById('shake-toggle');
+    const shakeStatus = document.getElementById('shake-status');
+    const themeSelectorEl = document.querySelector('.theme-selector');
+    const selectorEl = document.querySelector('.selector');
+
+    function updateShakeStatus() {
+      const on = shakeToggle.checked;
+      shakeStatus.textContent = on ? 'On' : 'Off';
+      shakeStatus.style.color = on ? 'var(--gold-light)' : '';
+    }
+
+    const savedShake = localStorage.getItem('shakeEnabled') === 'true';
+    shakeToggle.checked = savedShake;
+    updateShakeStatus();
+
+    let minimalMode = false;
+
+    function setMinimalMode(on) {
+      minimalMode = on;
+      [themeSelectorEl, selectorEl].forEach(el => {
+        el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        el.style.opacity = on ? '0' : '1';
+        el.style.transform = on ? 'translateY(-8px)' : 'translateY(0)';
+        el.style.pointerEvents = on ? 'none' : '';
+      });
+    }
+
+    function triggerShake() {
+      setMinimalMode(!minimalMode);
+    }
+
+    shakeToggle.addEventListener('change', async () => {
+      localStorage.setItem('shakeEnabled', String(shakeToggle.checked));
+      updateShakeStatus();
+      if (!shakeToggle.checked && minimalMode) setMinimalMode(false);
+      if (shakeToggle.checked &&
+        typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+          const r = await DeviceMotionEvent.requestPermission();
+          if (r === 'granted') window.addEventListener('devicemotion', handleMotion);
+        } catch (err) {
+          console.warn('DeviceMotion permission denied or unavailable:', err);
+        }
+      }
+    });
+
+    // Device motion shake detection (mobile)
+    let lastAX = null, lastAY = null, lastAZ = null, motionThrottle = false;
+
+    function handleMotion(e) {
+      if (!shakeToggle.checked) return;
+      const a = e.accelerationIncludingGravity;
+      if (!a || a.x === null) return;
+      if (lastAX === null) {
+        lastAX = a.x; lastAY = a.y; lastAZ = a.z;
+        return;
+      }
+      const delta = Math.abs(a.x - lastAX) + Math.abs(a.y - lastAY) + Math.abs(a.z - lastAZ);
+      lastAX = a.x; lastAY = a.y; lastAZ = a.z;
+      if (delta > SHAKE_ACCEL_DELTA && !motionThrottle) {
+        motionThrottle = true;
+        setTimeout(() => { motionThrottle = false; }, 1500);
+        triggerShake();
+      }
+    }
+
+    if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission !== 'function') {
+      window.addEventListener('devicemotion', handleMotion);
+    }
+
+    // Mouse shake detection (desktop)
+    let mouseHistory = [], mouseCooldown = false;
+
+    document.addEventListener('mousemove', e => {
+      if (!shakeToggle.checked) return;
+      const now = Date.now();
+      mouseHistory.push({ x: e.clientX, t: now });
+      mouseHistory = mouseHistory.filter(p => now - p.t < SHAKE_WINDOW_MS);
+      if (mouseHistory.length >= 8 && !mouseCooldown) {
+        let changes = 0;
+        for (let i = 2; i < mouseHistory.length; i++) {
+          const d1 = mouseHistory[i - 1].x - mouseHistory[i - 2].x;
+          const d2 = mouseHistory[i].x - mouseHistory[i - 1].x;
+          if (d1 * d2 < 0 && Math.abs(d1) > SHAKE_VELOCITY_PX && Math.abs(d2) > SHAKE_VELOCITY_PX) changes++;
+        }
+        if (changes >= SHAKE_DIR_CHANGES) {
+          mouseCooldown = true;
+          setTimeout(() => { mouseCooldown = false; }, 2000);
+          mouseHistory = [];
+          triggerShake();
+        }
+      }
+    });
   </script>
 </body>
 
