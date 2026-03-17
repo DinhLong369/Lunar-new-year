@@ -355,6 +355,47 @@
       return { d: Math.floor(s / 86400), h: Math.floor((s % 86400) / 3600), m: Math.floor((s % 3600) / 60), s: s % 60 };
     }
 
+    // Thông báo nổi khi Time Back Home về 0 và trước 5 giây
+    let notifiedBackHome = false;
+    let notified5s = false;
+    function showBackHomeNotification() {
+      if (window.Notification && Notification.permission === 'granted') {
+        new Notification('Tắt máy đi về', { body: 'Đã hết giờ làm, tắt máy về thôi!' });
+      } else if (window.Notification && Notification.permission !== 'denied') {
+        Notification.requestPermission().then(function (permission) {
+          if (permission === 'granted') {
+            new Notification('Tắt máy đi về', { body: 'Đã hết giờ làm, tắt máy về thôi!' });
+          } else {
+            alert('Đã hết giờ làm,tắt máy về thôi!');
+          }
+        });
+      } else {
+        alert('Đã hết giờ làm, tắt máy về thôi!');
+      }
+    }
+
+    function showFocusNotification() {
+      if (window.Notification && Notification.permission === 'granted') {
+        const n = new Notification('Sắp hết giờ làm!', {
+          body: 'Chuẩn bị tắt máy về thôi!',
+        });
+        n.onclick = function () {
+          window.focus();
+        };
+      } else if (window.Notification && Notification.permission !== 'denied') {
+        Notification.requestPermission().then(function (permission) {
+          if (permission === 'granted') {
+            const n = new Notification('Sắp hết giờ làm!', {
+              body: 'Chuẩn bị tắt máy về thôi!',
+            });
+            n.onclick = function () {
+              window.focus();
+            };
+          }
+        });
+      }
+    }
+
     function tick() {
       const ev = events[current];
       let target = ev.isDynamic ? ev.getTarget() : ev.target;
@@ -366,6 +407,21 @@
       }
       updateUnit('cd', c.d); updateUnit('ch', c.h);
       updateUnit('cm', c.m); updateUnit('cs', c.s);
+      // Nếu là tab Time Back Home và countdown về 0 thì hiện thông báo nổi
+      if (current === 2 && c.d === 0 && c.h === 0 && c.m === 0 && c.s === 0 && !notifiedBackHome) {
+        notifiedBackHome = true;
+        showBackHomeNotification();
+      }
+      // Trước 5 giây thì gửi notification focus nếu chưa gửi
+      if (current === 2 && c.d === 0 && c.h === 0 && c.m === 0 && c.s === 5 && !notified5s) {
+        notified5s = true;
+        showFocusNotification();
+      }
+      // Reset khi chuyển sang event khác hoặc thời gian khác 0/5s
+      if (current !== 2 || c.d !== 0 || c.h !== 0 || c.m !== 0 || (c.s !== 0 && c.s !== 5)) {
+        if (c.s !== 0) notifiedBackHome = false;
+        if (c.s !== 5) notified5s = false;
+      }
     }
 
     function switchEvent(idx) {
